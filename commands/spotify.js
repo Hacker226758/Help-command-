@@ -1,21 +1,35 @@
 const axios = require('axios');
-const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'spotify',
-  description: 'search and play spotify song.',
-  usage: 'spotify [song name]',
-  author: 'coffee',
+  description: 'Get a Spotify link for a song',
+  author: 'Deku (rest api)',
+  async execute(senderId, args, pageAccessToken, sendMessage) {
+    const query = args.join(' ');
 
-  async execute(senderId, args, pageAccessToken) {
     try {
-      const { data } = await axios.get(`https://hiroshi-api.onrender.com/tiktok/spotify?search=${encodeURIComponent(args.join(' '))}`);
-      const link = data[0]?.download;
+      const apiUrl = `https://deku-rest-apis.ooguy.com/spotify?q=${encodeURIComponent(query)}`;
+      const response = await axios.get(apiUrl);
 
-      sendMessage(senderId, link ? {
-        attachment: { type: 'audio', payload: { url: link, is_reusable: true } }
-      } : { text: 'Sorry, no Spotify link found for that query.' }, pageAccessToken);
-    } catch {
+      // Extract the Spotify link from the response
+      const spotifyLink = response.data.result;
+
+      if (spotifyLink) {
+        // Send the MP3 file as an attachment
+        sendMessage(senderId, {
+          attachment: {
+            type: 'audio',
+            payload: {
+              url: spotifyLink,
+              is_reusable: true
+            }
+          }
+        }, pageAccessToken);
+      } else {
+        sendMessage(senderId, { text: 'Sorry, no Spotify link found for that query.' }, pageAccessToken);
+      }
+    } catch (error) {
+      console.error('Error retrieving Spotify link:', error);
       sendMessage(senderId, { text: 'Sorry, there was an error processing your request.' }, pageAccessToken);
     }
   }
