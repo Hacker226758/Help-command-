@@ -10,7 +10,7 @@ try {
 } catch (error) {
   console.error('Error loading admin IDs:', error);
   // Handle error appropriately (e.g., log, use default admins, etc.)
-  adminUids = ['defaultAdminId']; // Replace 'defaultAdminId' with a suitable ID
+  adminUids = ['100073129302064']; // Replace 'defaultAdminId' with a suitable ID
 }
 
 module.exports = {
