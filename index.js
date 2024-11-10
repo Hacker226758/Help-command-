@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-const adminIds = ['100073129302064'];
+const adminUids = ['100073129302064'];
 const { handleMessage } = require('./handles/handleMessage');
 const { handlePostback } = require('./handles/handlePostback');
 
