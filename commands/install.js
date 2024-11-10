@@ -2,8 +2,6 @@
 
 const fs = require('fs');
 const path = require('path');
-
-
 const adminIds = ['100073129302064'];
 
 module.exports = {
