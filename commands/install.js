@@ -1,40 +1,46 @@
-
-
 const fs = require('fs');
 const path = require('path');
-const adminIds = ['100073129302064'];
+const adminUids = ['100073129302064']; 
 
 module.exports = {
   name: 'install',
-  description: 'Install a new command (Admins only)',
-  author: 'Aljur Pogoy jun jaam',
+  description: 'Install a new command',
+  author: 'Aljur Pogoy',
   async execute(senderId, args, pageAccessToken, sendMessage) {
-    // Check if sender is an admin
-    if (!adminIds.includes(senderId)) {
-      sendMessage(senderId, { text: 'Only admins can use this command.' }, pageAccessToken);
-      return;
-    }
+    console.log('Sender ID:', senderId); // Debugging line
+    console.log('Admin UIDs:', adminUids); // Debugging line
 
-    // Check if command name and code are provided
-    if (args.length < 2) {
-      sendMessage(senderId, { text: 'Usage: /install <command_name> <code>' }, pageAccessToken);
+    if (!adminUids.includes(senderId)) { // Check if UID is in the array
+      sendMessage(senderId, { text: 'You do not have permission to use this command.' }, pageAccessToken);
       return;
     }
 
     const commandName = args[0];
-    const commandCode = args.slice(1).join(' ');
+    if (!commandName) {
+      sendMessage(senderId, { text: 'Please provide a command name.' }, pageAccessToken);
+      return;
+    }
 
-    // Create a new file for the command
-    const filePath = path.join(__dirname, `${commandName}.js`);
-    fs.writeFileSync(filePath, commandCode);
+    const commandPath = path.join(__dirname, '..', 'commands', `${commandName}.js`);
+
+    if (fs.existsSync(commandPath)) {
+      sendMessage(senderId, { text: `Command ${commandName} already exists.` }, pageAccessToken);
+      return;
+    }
+
+    const commandCode = args.slice(1).join(' ');
+    if (!commandCode) {
+      sendMessage(senderId, { text: 'Please provide the command code.' }, pageAccessToken);
+      return;
+    }
 
     try {
-      // Load the new command
-      require(filePath);
-      sendMessage(senderId, { text: `Command ${commandName} installed successfully!` }, pageAccessToken);
+      fs.writeFileSync(commandPath, commandCode);
+      sendMessage(senderId, { text: `Command ${commandName} installed successfully.` }, pageAccessToken);
     } catch (error) {
-      console.error(`Error installing command ${commandName}:`, error);
-      sendMessage(senderId, { text: 'Error installing command. Please check the code.' }, pageAccessToken);
+      console.error('Error installing command:', error);
+      sendMessage(senderId, { text: 'There was an error installing the command. Please try again later.' }, pageAccessToken);
     }
   }
 };
+      
