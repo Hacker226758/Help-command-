@@ -1,29 +1,20 @@
 const axios = require('axios');
+const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'ai',
-  description: 'Ask a question to chatgpt',
+  description: 'Xao Ai',
+  usage: 'ai [your Question or Message]',
   author: 'Aljur Pogoy',
-  async execute(senderId, args, pageAccessToken, sendMessage) {
+
+  async execute(senderId, args, pageAccessToken) {
     const prompt = args.join(' ');
-
-    if (prompt === "") {
-      sendMessage(senderId, { text: "Usage: /gpt4 <question>" }, pageAccessToken);
-      return; // Ensure the function doesn't continue
-    }
-
-    // Inform the user that content is being generated
-    sendMessage(senderId, { text: 'Generating content... Please wait.' }, pageAccessToken);
+    if (!prompt) return sendMessage(senderId, { text: "Usage: aiv2 <question>" }, pageAccessToken);
 
     try {
-      const apiUrl = `https://deku-rest-apis.ooguy.com/gpt4?prompt=${encodeURIComponent(prompt)}&uid=${senderId}`;
-      const response = await axios.get(apiUrl);
-      const text = response.data.gpt4;
-
-      // Send the generated text to the user
-      sendMessage(senderId, { text: "GPT4 BY CHATGPT:\n\n" + text }, pageAccessToken);
-    } catch (error) {
-      console.error('Error calling GPT-4 API:', error);
+      const { data: { result } } = await axios.get(`https://api.y2pheq.me/xaoai?prompt=hello${encodeURIComponent(prompt)}&UID=${senderId}`);
+      sendMessage(senderId, { text: result }, pageAccessToken);
+    } catch {
       sendMessage(senderId, { text: 'There was an error generating the content. Please try again later.' }, pageAccessToken);
     }
   }
