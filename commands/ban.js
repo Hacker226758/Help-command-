@@ -9,7 +9,7 @@ module.exports = {
     // Load admin UIDs from admins.json
     let adminUids = [];
     try {
-      const data = fs.readFileSync('ad.json'); // Assuming admins.json is in the same directory
+      const data = fs.readFileSync('admins.json'); // Assuming admins.json is in the same directory
       adminUids = JSON.parse(data).admins;
     } catch (error) {
       console.error('Error loading admin IDs:', error);
