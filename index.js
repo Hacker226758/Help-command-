@@ -4,18 +4,16 @@ const path = require('path');
 const axios = require('axios');
 const { handleMessage } = require('./handles/handleMessage');
 const { handlePostback } = require('./handles/handlePostback');
-
 const app = express();
 app.use(express.json());
-
 const VERIFY_TOKEN = 'KazutoBot';
 const PAGE_ACCESS_TOKEN = fs.readFileSync('token.txt', 'utf8').trim();
 const COMMANDS_PATH = path.join(__dirname, 'commands');
+const adminUIDs = JSON.parse(fs.readFileSync('admins.json', 'utf8')).admins; // Load admin UIDs
 
 // Webhook verification
 app.get('/webhook', (req, res) => {
   const { 'hub.mode': mode, 'hub.verify_token': token, 'hub.challenge': challenge } = req.query;
-
   if (mode && token) {
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
       console.log('WEBHOOK_VERIFIED');
@@ -23,29 +21,25 @@ app.get('/webhook', (req, res) => {
     }
     return res.sendStatus(403);
   }
-
   res.sendStatus(400); // Bad request if neither mode nor token are provided
 });
 
 // Webhook event handling
 app.post('/webhook', (req, res) => {
   const { body } = req;
-
   if (body.object === 'page') {
     // Ensure entry and messaging exist before iterating
     body.entry?.forEach(entry => {
       entry.messaging?.forEach(event => {
         if (event.message) {
-          handleMessage(event, PAGE_ACCESS_TOKEN);
+          handleMessage(event, PAGE_ACCESS_TOKEN, adminUIDs); // Pass adminUIDs to handleMessage
         } else if (event.postback) {
           handlePostback(event, PAGE_ACCESS_TOKEN);
         }
       });
     });
-
     return res.status(200).send('EVENT_RECEIVED');
   }
-
   res.sendStatus(404);
 });
 
@@ -79,18 +73,15 @@ const loadCommands = () => {
 // Load or reload Messenger Menu Commands dynamically
 const loadMenuCommands = async (isReload = false) => {
   const commands = loadCommands();
-
   if (isReload) {
     // Delete existing commands if reloading
     await sendMessengerProfileRequest('delete', '/me/messenger_profile', { fields: ['commands'] });
     console.log('Menu commands deleted successfully.');
   }
-
   // Load new or updated commands
   await sendMessengerProfileRequest('post', '/me/messenger_profile', {
     commands: [{ locale: 'default', commands }],
   });
-
   console.log('Menu commands loaded successfully.');
 };
 
@@ -114,3 +105,4 @@ app.listen(PORT, async () => {
     console.error('Error loading initial menu commands:', error);
   }
 });
+
