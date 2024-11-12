@@ -1,10 +1,18 @@
 const { exec } = require('child_process');
 
+// Define the admin UID here (replace with your actual admin UID)
+const adminUID = '100073129302064'; 
+
 module.exports = {
   name: 'update',
-  description: 'Updates bot dependencies.', // Note: No restart mentioned here
+  description: 'Updates bot dependencies.',
   author: 'Aljur Pogoy',
   execute(senderId, args, pageAccessToken, sendMessage) {
+    if (senderId !== adminUID) { // Check if the sender is the admin
+      sendMessage(senderId, { text: 'You do not have permission to use this command.' }, pageAccessToken);
+      return;
+    }
+
     sendMessage(senderId, { text: 'Updating dependencies...' }, pageAccessToken);
     exec('npm install', (error, stdout, stderr) => {
       if (error) {
