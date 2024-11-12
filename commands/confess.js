@@ -8,7 +8,7 @@ module.exports = {
     const targetUserId = args[0]; // Assuming the first argument is the target user ID
 
     if (!targetUserId) {
-      sendMessage(senderId, { text: "Usage: /confess <target_user_id>" }, pageAccessToken);
+      sendMessage(senderId, { text: "Please enter the Facebook user ID of the person you want to confess to." }, pageAccessToken);
       return;
     }
 
