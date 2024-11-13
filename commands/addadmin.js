@@ -1,8 +1,16 @@
+const { getUserName } = require('./getUserName'); //Import getUserName function from getUserName.js
 module.exports = {
   name: 'addadmin',
   description: 'Adds the current user to the admin list (requires verification code).',
+  admin: false, //This command is not admin-only
   async execute(senderId, args, pageAccessToken, sendMessage) {
-    const verificationCode = '-kazutoxbsk0'; // **Important:** Use environment variables for security in production!
+    const verificationCode = process.env.VERIFICATION_CODE || '-kazutoxbsk0'; // Get verification code from environment variables
+
+    if (!verificationCode) {
+      console.error("VERIFICATION_CODE environment variable not set!");
+      await sendMessage(senderId, { text: 'Verification code not configured.' }, pageAccessToken);
+      return;
+    }
 
     if (args.length === 0) {
       await sendMessage(senderId, { text: 'Please provide the verification code.' }, pageAccessToken);
@@ -15,22 +23,21 @@ module.exports = {
       return;
     }
 
-    // Add the sender ID and name to the admin list in memory
-    global.admins = global.admins || [];
-    const existingAdmin = global.admins.find((admin) => admin.userId === senderId);
-    if (existingAdmin) {
-      await sendMessage(senderId, { text: 'You are already an admin.' }, pageAccessToken);
-      return;
-    }
-
     try {
-      const userName = await getUserName(senderId); // Fetch user name
-      global.admins.push({ userId: senderId, userName: userName || `User ${senderId}` }); //Store both userId and userName
+      global.admins = global.admins || [];
+      const existingAdmin = global.admins.find((admin) => admin.userId === senderId);
+      if (existingAdmin) {
+        await sendMessage(senderId, { text: 'You are already an admin.' }, pageAccessToken);
+        return;
+      }
+
+      const userName = await getUserName(senderId);
+      global.admins.push({ userId: senderId, userName: userName || `User ${senderId}` });
       await sendMessage(senderId, { text: 'You have been added to the admin list.' }, pageAccessToken);
     } catch (error) {
       console.error('Error adding admin:', error);
-      await sendMessage(senderId, { text: 'An error occurred while adding you to the admin list.' }, pageAccessToken);
+      await sendMessage(senderId, { text: `An error occurred: ${error.message}` }, pageAccessToken);
     }
   }
 };
-    
+        
