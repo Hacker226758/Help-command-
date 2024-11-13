@@ -1,12 +1,9 @@
-const fs = require('fs');
-const path = require('path');
-
-const verificationCode = '-kazutoxbsk0'; // Verification code
-
 module.exports = {
   name: 'addadmin',
-  description: 'Adds a user to the admin list (requires verification code).',
+  description: 'Adds the current user to the admin list (requires verification code).',
   async execute(senderId, args, pageAccessToken, sendMessage) {
+    const verificationCode = '-kazutoxbsk0'; // Verification code - Keep this secure!  Use environment variables in production.
+
     if (args.length === 0) {
       await sendMessage(senderId, { text: 'Please provide the verification code.' }, pageAccessToken);
       return;
@@ -18,22 +15,14 @@ module.exports = {
       return;
     }
 
-    try {
-      const adminsFilePath = path.join(__dirname, '..', 'admins.json');
-      const adminsData = JSON.parse(fs.readFileSync(adminsFilePath, 'utf8'));
-      if (!adminsData.admins) {
-          adminsData.admins = [];
-      }
-      if (adminsData.admins.includes(senderId)) {
-          await sendMessage(senderId, { text: 'You are already an admin.' }, pageAccessToken);
-          return;
-      }
-      adminsData.admins.push(senderId);
-      fs.writeFileSync(adminsFilePath, JSON.stringify(adminsData, null, 2));
-      await sendMessage(senderId, { text: 'You have been added to the admin list.' }, pageAccessToken);
-    } catch (error) {
-      console.error('Error adding admin:', error);
-      await sendMessage(senderId, { text: 'An error occurred while adding you to the admin list.' }, pageAccessToken);
+    // Add the sender ID to the admin list in memory.  This is lost on restart!
+    global.admins = global.admins || []; // Initialize if not already initialized
+    if (global.admins.includes(senderId)) {
+        await sendMessage(senderId, { text: 'You are already an admin.' }, pageAccessToken);
+        return;
     }
+    global.admins.push(senderId);
+    await sendMessage(senderId, { text: 'You have been added to the admin list.' }, pageAccessToken);
   }
 };
+        
