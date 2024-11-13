@@ -3,7 +3,7 @@ const { exec } = require('child_process');
 module.exports = {
   name: 'update',
   description: 'Updates bot dependencies.',
-  author: 'Aljur Pogoy',
+  admin: true,
   execute(senderId, args, pageAccessToken, sendMessage, adminUIDs) {
     // Check if the user is an admin
     if (!adminUIDs.includes(senderId)) {
