@@ -20,6 +20,7 @@
     "moment-timezone": "^0.5.46",
     "node-fetch": "^3.3.2",
     "os": "^0.1.2",
+    "pg": "^8.13.1",
     "request": "^2.88.2",
     "tinyurl": "^1.1.7",
     "winston": "^3.13.0"
