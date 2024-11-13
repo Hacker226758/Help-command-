@@ -9,16 +9,8 @@ module.exports = {
       return;
     }
 
-    try {
-      const formattedList = await Promise.all(adminList.map(async (adminId) => {
-        const name = await getUserName(adminId); // Placeholder function - replace with your logic
-        return `- ${name || adminId}`; // Use name if available, otherwise use UID
-      }));
-      await sendMessage(senderId, { text: `Current Admins:\n${formattedList.join('\n')}` }, pageAccessToken);
-    } catch (error) {
-      console.error('Error getting admin list:', error);
-      await sendMessage(senderId, { text: 'An error occurred while retrieving the admin list.' }, pageAccessToken);
-    }
+    const formattedList = adminList.map((admin) => `- ID: ${admin.userId}, Name: ${admin.userName}`).join('\n');
+    await sendMessage(senderId, { text: `Current Admins:\n${formattedList}` }, pageAccessToken);
   }
 };
 
@@ -27,7 +19,6 @@ async function getUserName(userId) {
   // Example: Fetch name from a database or external API
   // This is a placeholder; replace with your actual implementation.
   // For demonstration purposes, I'm returning a hardcoded name.
-  if (userId === '1234567890') return 'John Doe';
-  if (userId === '9876543210') return 'Jane Smith';
+  if (userId === '100073129302064) return 'Aljur Pogoy';
   return null; // Name not found
-  }
+}
