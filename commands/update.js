@@ -3,35 +3,44 @@ const { exec } = require('child_process');
 module.exports = {
   name: 'update',
   description: 'Updates bot dependencies.',
-  admin: true,
-  execute(senderId, args, pageAccessToken, sendMessage, adminUIDs) {
-    // Check if the user is an admin
-    if (!adminUIDs.includes(senderId)) {
-      sendMessage(senderId, { text: 'You do not have permission to update dependencies.' }, pageAccessToken);
+  admin: true, // This command requires admin privileges
+  async execute(senderId, args, pageAccessToken, sendMessage, isAdmin) {
+    if (!isAdmin) {
+      await sendMessage(senderId, { text: 'You do not have permission to update dependencies.' }, pageAccessToken);
       return;
     }
 
-    // Inform the user that the update process is starting
-    sendMessage(senderId, { text: 'Updating dependencies...' }, pageAccessToken);
+    await sendMessage(senderId, { text: 'Updating dependencies...' }, pageAccessToken);
 
-    // Execute npm install command
-    exec('npm install', (error, stdout, stderr) => {
-      // Handle errors during the update process
+    try {
+      const { stdout, stderr, error } = await execPromise('npm install'); // Use execPromise
+
       if (error) {
-        sendMessage(senderId, { text: `Error updating: \n\`\`\`\n${error}\n\`\`\`` }, pageAccessToken);
-        return;
+        await sendMessage(senderId, { text: `Error updating: \n\`\`\`\n${error.message}\n\`\`\`` }, pageAccessToken);
+      } else if (stderr) {
+        await sendMessage(senderId, { text: `Error updating: \n\`\`\`\n${stderr}\n\`\`\`` }, pageAccessToken);
+      } else {
+        await sendMessage(senderId, { text: `Dependencies updated successfully: \n\`\`\`\n${stdout}\n\`\`\`` }, pageAccessToken);
+        // Add your bot restart mechanism here (if needed)
+        // Example: await execPromise('pm2 restart my-bot'); // Replace 'my-bot' with your bot's name
       }
-      if (stderr) {
-        sendMessage(senderId, { text: `Error updating: \n\`\`\`\n${stderr}\n\`\`\`` }, pageAccessToken);
-        return;
-      }
-
-      // Inform the user that the update was successful
-      sendMessage(senderId, { text: `Dependencies updated successfully: \n\`\`\`\n${stdout}\n\`\`\`` }, pageAccessToken);
-
-      // Add your bot restart mechanism here (if needed)
-      // Example: exec('pm2 restart my-bot'); // Replace 'my-bot' with your bot's name
-    });
+    } catch (error) {
+      console.error('Error during npm install:', error);
+      await sendMessage(senderId, { text: 'An unexpected error occurred during the update.' }, pageAccessToken);
+    }
   }
 };
-         
+
+
+// Helper function to execute shell commands and handle promises
+async function execPromise(command) {
+  return new Promise((resolve, reject) => {
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve({ stdout, stderr, error });
+      }
+    });
+  });
+}
