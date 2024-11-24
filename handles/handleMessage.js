@@ -32,7 +32,7 @@ async function handleMessage(event, pageAccessToken) {
       }
       await command.execute(senderId, args, pageAccessToken, sendMessage);
     } else {
-      await sendMessage(senderId, { text: `Unknown command: ${messageText}` }, pageAccessToken);
+      await sendMessage(senderId, { text: `Don't use Caps in the first letter or Unknown Comamnd: ${messageText}` }, pageAccessToken);
     }
   } catch (error) {
     console.error(`Error handling message:`, error);
