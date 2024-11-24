@@ -1,16 +1,15 @@
 const fs = require('fs');
 const path = require('path');
-const { sendMessage } = require('./sendMessage'); // Ensure sendMessage.js is correctly implemented
+const { sendMessage } = require('./sendMessage'); // Your sendMessage function
 
 const commands = new Map();
-const prefix = '/'; // Changed prefix to '/'
+const prefix = '/';
 
-// Load command modules
 fs.readdirSync(path.join(__dirname, '../commands'))
   .filter(file => file.endsWith('.js'))
   .forEach(file => {
     const command = require(`../commands/${file}`);
-    commands.set(command.name.toLowerCase(), command);
+    commands.set(command.name, command); // Removed toLowerCase()
   });
 
 async function handleMessage(event, pageAccessToken) {
@@ -24,24 +23,22 @@ async function handleMessage(event, pageAccessToken) {
     ? messageText.slice(prefix.length).split(' ')
     : messageText.split(' ');
 
-
   try {
-    const command = commands.get(commandName.toLowerCase());
+    const command = commands.get(commandName); // Removed toLowerCase()
     if (command) {
-      // Admin check (using in-memory storage - NOT persistent!)
-      if (command.admin && !(global.admins || []).includes(senderId)) {
+      if (command.admin && !(global.admins || []).find(admin => admin.userId === senderId)) {
         await sendMessage(senderId, { text: 'You do not have permission to use this command.' }, pageAccessToken);
         return;
       }
-      await command.execute(senderId, args, pageAccessToken, sendMessage, (global.admins || []).includes(senderId));
+      await command.execute(senderId, args, pageAccessToken, sendMessage);
     } else {
-      // Default behavior if no command is recognized
       await sendMessage(senderId, { text: `Unknown command: ${messageText}` }, pageAccessToken);
     }
   } catch (error) {
     console.error(`Error handling message:`, error);
-    await sendMessage(senderId, { text: 'An error occurred while processing your request.' }, pageAccessToken);
+    await sendMessage(senderId, { text: `An error occurred: ${error.message}` }, pageAccessToken);
   }
 }
 
 module.exports = { handleMessage };
+    
