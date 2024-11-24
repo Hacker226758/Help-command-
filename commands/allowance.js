@@ -1,55 +1,35 @@
-const axios = require("axios");
+const axios = require('axios');
+
+// Define a simple in-memory database to store user balances
+const userBalances = {}; 
 
 module.exports = {
-  name: 'allowance',
-  description: 'Receive your daily allowance',
+  name: 'daily',
+  description: 'Claim your daily reward',
   author: 'Aljur Pogoy',
   async execute(senderId, args, pageAccessToken, sendMessage) {
-    try {
-      const { senderID } = event;
-      const userData = await usersData.get(senderID);
-      const dateTime = moment.tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY");
-      const date = new Date();
-      const currentDay = date.getDay(); // 0: sunday, 1: monday, 2: tuesday, 3: wednesday, 4: thursday, 5: friday, 6: saturday
+    // Simulate a daily cooldown (replace with actual cooldown logic if needed)
+    const lastClaim = userBalances[senderId]?.lastClaim || 0;
+    const now = Date.now();
+    const cooldown = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
-      if (userData.data.lastTimeGetReward === dateTime) {
-        sendMessage(senderId, { text: 'You have already received your allowance today.' }, pageAccessToken);
-        return;
-      }
+    if (now - lastClaim >= cooldown) {
+      // Give the user a reward (adjust amount as needed)
+      const reward = 100;
 
-      sendMessage(senderId, { text: 'Claiming your daily allowance...' }, pageAccessToken);
+      // Update the user's balance in the shared database
+      userBalances[senderId] = {
+        balance: (userBalances[senderId]?.balance || 0) + reward, // Add reward to existing balance
+        lastClaim: now
+      };
 
-      // Calculate reward based on day of the week
-      const reward = calculateDailyReward(currentDay);
-
-      // Update user data
-      userData.data.lastTimeGetReward = dateTime;
-      await usersData.set(senderID, {
-        money: userData.money + reward.coin,
-        exp: userData.exp + reward.exp,
-      });
-
-      // Send reward message
-      sendMessage(senderId, { text: `You received ${reward.coin} coins and ${reward.exp} experience points!` }, pageAccessToken);
-
-    } catch (error) {
-      console.error('Error giving allowance:', error);
-      sendMessage(senderId, { text: 'There was an error giving you your allowance. Please try again later.' }, pageAccessToken);
+      sendMessage(senderId, { text: `You've claimed your daily reward of ${reward}! Your new balance is ${userBalances[senderId].balance}` }, pageAccessToken);
+    } else {
+      const timeRemaining = cooldown - (now - lastClaim);
+      const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+      const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+      sendMessage(senderId, { text: `You can claim your daily reward in ${hours} hours and ${minutes} minutes.` }, pageAccessToken);
     }
   }
 };
-
-// Function to calculate daily reward
-function calculateDailyReward(day) {
-  // Example: Simple reward calculation
-  let coinReward = 5000;
-  let expReward = 5;
-
-  // Adjust reward based on day of the week (you can customize this)
-  if (day === 0 || day === 6) { // Sunday or Saturday
-    coinReward *= 2;
-    expReward *= 2;
-  }
-
-  return { coin: coinReward, exp: expReward };
-}
+          

@@ -1,24 +1,27 @@
-// Replace with your actual database or API interaction
-const { Pool } = require('pg'); // Example using PostgreSQL
+const { MongoClient } = require('mongodb'); // Import MongoClient from the mongodb package
 
-const pool = new Pool({
-  // Your database connection details here
-  user: 'your_db_user',
-  host: 'your_db_host',
-  database: 'your_db_name',
-  password: 'your_db_password',
-  port: 5432, // Or your database port
-});
+const uri = "mongodb+srv://korisawarezero:QV1c3LOUtbnAjRtQ@cluster0.8wig732.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"; // Replace with your MongoDB connection string
 
+const client = new MongoClient(uri);
 
 async function getUserName(userId) {
   try {
-    const result = await pool.query('SELECT name FROM users WHERE id = $1', [userId]);
-    return result.rows[0]?.name || null; // Return name or null if not found
+    await client.connect();
+    const database = client.db('Cluster0'); // Replace 'your_database_name' with your database name
+    const usersCollection = database.collection('users'); // Replace 'users' with your collection name
+
+    const user = await usersCollection.findOne({ userId: userId }); // Find the user by userId
+    return user?.name || null; // Return the user's name or null if not found
+
   } catch (error) {
     console.error('Error fetching user name:', error);
     return null;
+  } finally {
+    // Ensures that the client will close when you finish
+    // and helps prevent resource leaks
+    await client.close();
   }
 }
 
 module.exports = { getUserName };
+
